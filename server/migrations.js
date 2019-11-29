@@ -825,3 +825,19 @@ Migrations.add('add-profile-hiddenMinicardLabelText', () => {
     noValidateMulti,
   );
 });
+
+Migrations.add('add-board-keys', () => {
+  /*
+    - Insert a new key into every board
+    - Set default value for 'showBoardKey'
+    - PreSeed fullTitle with title
+  */
+  Boards.find().forEach((board) => {
+    Boards.update(board._id, {
+      $set: {
+        boardKey: board.generateKey(),
+        showBoardKey: 'key-hide-key',
+      },
+    }, noValidate);
+  });
+});

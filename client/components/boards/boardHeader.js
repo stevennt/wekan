@@ -58,9 +58,21 @@ Template.boardChangeTitlePopup.events({
       .$('.js-board-desc')
       .val()
       .trim();
-    if (newTitle) {
-      this.rename(newTitle);
-      this.setDescription(newDesc);
+    const newBoardKey = templateInstance
+      .$('.js-board-key')
+      .val()
+      .trim();
+    if (newBoardKey) {
+      if (Meteor.user().getBoardKey(newBoardKey)) {
+        alert(TAPi18n.__('board-key-already-exists'));
+      }
+    } else {
+      if (newTitle || newBoardKey) {
+        this.rename(newTitle, newBoardKey);
+      }
+      if (newDesc) {
+        this.setDescription(newDesc);
+      }
       Popup.close();
     }
     event.preventDefault();
@@ -205,6 +217,7 @@ const CreateBoard = BlazeComponent.extendComponent({
     this.visibilityMenuIsOpen = new ReactiveVar(false);
     this.visibility = new ReactiveVar('private');
     this.boardId = new ReactiveVar('');
+    this.error = new ReactiveVar('');
   },
 
   visibilityCheck() {
@@ -223,11 +236,13 @@ const CreateBoard = BlazeComponent.extendComponent({
   onSubmit(event) {
     event.preventDefault();
     const title = this.find('.js-new-board-title').value;
+    const boardKey = this.find('.js-new-board-key').value;
     const visibility = this.visibility.get();
 
     this.boardId.set(
       Boards.insert({
         title,
+        boardKey,
         permission: visibility,
       }),
     );

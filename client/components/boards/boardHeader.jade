@@ -2,8 +2,23 @@ template(name="boardHeaderBar")
   h1.header-board-menu
     with currentBoard
       a(class="{{#if currentUser.isBoardAdmin}}js-edit-board-title{{else}}is-disabled{{/if}}")
-        +viewer
-          = title
+        if($eq showBoardKey 'key-hide-key')
+          +viewer
+            = title
+        if($eq showBoardKey 'key-postfix-title-key-bracketed')
+          +viewer
+            = title
+            = " ("
+            = boardKey
+            = ")"
+        if($eq showBoardKey 'key-prefix-title-dash')
+          +viewer
+            = boardKey
+            = " - "
+            = title
+        if($eq showBoardKey 'key-only-key')
+          +viewer
+            = boardKey
 
   .board-header-btns.left
     unless isMiniScreen
@@ -213,6 +228,11 @@ template(name="createBoard")
     label
       | {{_ 'title'}}
       input.js-new-board-title(type="text" placeholder="{{_ 'bucket-example'}}" autofocus required)
+    label
+      | {{_ 'board-key'}}
+      input.js-new-board-key#boardkey(type="text" name="boardkey" required placeholder="{{_ 'board-key-example'}}")
+    if error.get
+        div.error {{_ error.get}}
     if visibilityMenuIsOpen.get
       +boardVisibilityList
     else
@@ -252,7 +272,14 @@ template(name="boardChangeTitlePopup")
   form
     label
       | {{_ 'title'}}
-      input.js-board-name(type="text" value=title autofocus dir="auto")
+      input.js-board-name#title(type="text" value=title autofocus dir="auto")
+    label
+      | {{_ 'board-key'}}
+      input.js-board-key#boardkey(type="text" name="boardkey" value=boardKey dir="auto")
+
+    if error.get
+        .error {{_ error.get}}
+
     label
       | {{_ 'description'}}
       textarea.js-board-desc(dir="auto")= description

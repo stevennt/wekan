@@ -11,6 +11,27 @@ Boards.attachSchema(
        */
       type: String,
     },
+    boardKey: {
+      /**
+       * The key of the board
+       */
+      type: String,
+      optional: true,
+    },
+    showBoardKey: {
+      /**
+       * Saved configuration how to show the key
+       */
+      allowedValues: [
+        'key-postfix-title-key-bracketed',
+        'key-prefix-title-dash',
+        'key-hide-key',
+        'key-only-key',
+      ],
+      type: String,
+      defaultValue: 'key-hide-key',
+      optional: true,
+    },
     slug: {
       /**
        * The title slugified.
@@ -368,6 +389,20 @@ Boards.helpers({
       swimlane.copy(_id);
     });
   },
+
+  /**
+   * Generates random chars as board key
+   */
+  generateKey() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let key = '';
+    for (let i = 0; i < 3; i++) {
+      const pos = Math.floor(Math.random() * chars.length);
+      key += chars.substring(pos, pos + 1);
+    }
+    return key;
+  },
+
   /**
    * Is supplied user authorized to view this board?
    */
@@ -502,6 +537,10 @@ Boards.helpers({
 
   memberUsers() {
     return Users.find({ _id: { $in: _.pluck(this.members, 'userId') } });
+  },
+
+  getBoardKey(boardKey) {
+    return Boards.findOne({ boardKey: boardKey });
   },
 
   getLabel(name, color) {
@@ -777,8 +816,35 @@ Boards.mutations({
     return { $set: { archived: false } };
   },
 
-  rename(title) {
-    return { $set: { title } };
+  rename(title, boardKey, showBoardKey) {
+    // If the title changes, we need to re-set the
+    // values for 'boardKey' and 'showBoardKey', too.
+    // If not, the 'fullTitle' autovalue does not get set.
+
+    if (!boardKey) boardKey = this.boardKey;
+
+    if (!showBoardKey) showBoardKey = this.showBoardKey;
+
+    return {
+      $set: {
+        title,
+        boardKey,
+        showBoardKey,
+      },
+    };
+  },
+
+  setShowBoardKey(showBoardKey) {
+    // If the showBoardKey changes, we need to re-set the
+    // values for 'title' and 'boardKey', too.
+    // If not, the 'fullTitle' autovalue does not get set.
+    return {
+      $set: {
+        title: this.title,
+        boardKey: this.boardKey,
+        showBoardKey,
+      },
+    };
   },
 
   setDescription(description) {
@@ -1022,6 +1088,14 @@ if (Meteor.isServer) {
       { unique: true },
     );
     Boards._collection._ensureIndex({ 'members.userId': 1 });
+    Boards._collection._ensureIndex(
+      {
+        _id: 1,
+        boardKey: 1,
+      },
+      { unique: true },
+    );
+    Boards._collection._ensureIndex({ boardKey: 1 });
   });
 
   // Genesis: the first activity of the newly created board
@@ -1275,6 +1349,7 @@ if (Meteor.isServer) {
    * <img src="https://wekan.github.io/board-colors.png" width="40%" alt="Wekan logo" />
    *
    * @param {string} title the new title of the board
+   * @param {string} boardKey the key of the board
    * @param {string} owner "ABCDE12345" <= User ID in Wekan.
    *                 (Not username or email)
    * @param {boolean} [isAdmin] is the owner an admin of the board (default true)
@@ -1293,6 +1368,8 @@ if (Meteor.isServer) {
       Authentication.checkUserId(req.userId);
       const id = Boards.insert({
         title: req.body.title,
+        boardKey: req.body.boardKey,
+        showBoardKey: 'key-hide-key',
         members: [
           {
             userId: req.body.owner,
