@@ -115,7 +115,7 @@ services:
     # NOTE: Quay is currently not updated, use Docker Hub image below c)
     # a) For Wekan Meteor 1.8.x version at master branch,
     #    using https://quay.io/wekan/wekan automatic builds
-    #image: quay.io/wekan/wekan
+    image: quay.io/wekan/wekan
     # b) Using specific Meteor 1.6.x version tag:
     # image: quay.io/wekan/wekan:v1.95
     # c) Using Docker Hub automatic builds https://hub.docker.com/r/wekanteam/wekan
@@ -129,17 +129,17 @@ services:
     #-------------------------------------------------------------------------------------
     # ==== BUILD wekan-app DOCKER CONTAINER FROM SOURCE, if you uncomment these ====
     # ==== and use commands: docker-compose up -d --build
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - NODE_VERSION=${NODE_VERSION}
-        - METEOR_RELEASE=${METEOR_RELEASE}
-        - NPM_VERSION=${NPM_VERSION}
-        - ARCHITECTURE=${ARCHITECTURE}
-        - SRC_PATH=${SRC_PATH}
-        - METEOR_EDGE=${METEOR_EDGE}
-        - USE_EDGE=${USE_EDGE}
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    #  args:
+    #    - NODE_VERSION=${NODE_VERSION}
+    #    - METEOR_RELEASE=${METEOR_RELEASE}
+    #    - NPM_VERSION=${NPM_VERSION}
+    #    - ARCHITECTURE=${ARCHITECTURE}
+    #    - SRC_PATH=${SRC_PATH}
+    #    - METEOR_EDGE=${METEOR_EDGE}
+    #    - USE_EDGE=${USE_EDGE}
     #-------------------------------------------------------------------------------------
     ports:
       # Docker outsideport:insideport. Do not add anything extra here.
